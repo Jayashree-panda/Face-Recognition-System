@@ -17,7 +17,14 @@ from numpy import expand_dims
 from numpy import asarray
 from numpy import savez_compressed
 from keras.models import load_model
- 
+
+# develop a classifier for the 5 Celebrity Faces Dataset
+from numpy import load
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import Normalizer
+from sklearn.svm import SVC
+# load dataset
 # extract a single face from a given photograph
 def extract_face(filename, required_size=(160, 160)):
 	# load image from file
@@ -126,3 +133,28 @@ newTestX = asarray(newTestX)
 print(newTestX.shape)
 # save arrays to one file in compressed format
 savez_compressed('5-celebrity-faces-embeddings.npz', newTrainX, trainy, newTestX, testy)
+
+# load dataset
+data = load('5-celebrity-faces-embeddings.npz')
+trainX, trainy, testX, testy = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
+print('Dataset: train=%d, test=%d' % (trainX.shape[0], testX.shape[0]))
+# normalize input vectors
+in_encoder = Normalizer(norm='l2')
+trainX = in_encoder.transform(trainX)
+testX = in_encoder.transform(testX)
+# label encode targets
+out_encoder = LabelEncoder()
+out_encoder.fit(trainy)
+trainy = out_encoder.transform(trainy)
+testy = out_encoder.transform(testy)
+# fit model
+model = SVC(kernel='linear', probability=True)
+model.fit(trainX, trainy)
+# predict
+yhat_train = model.predict(trainX)
+yhat_test = model.predict(testX)
+# score
+score_train = accuracy_score(trainy, yhat_train)
+score_test = accuracy_score(testy, yhat_test)
+# summarize
+print('Accuracy: train=%.3f, test=%.3f' % (score_train*100, score_test*100))
