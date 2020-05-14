@@ -1,2 +1,3 @@
 facenet_keras.h5
 5-celebrity-faces-dataset
+5-celebrity-faces-embeddings.npz
